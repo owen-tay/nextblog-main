@@ -132,7 +132,7 @@ const Post = () => {
     <div className="w-full flex justify-center pt-10 bg-base-100">
       <div className="w-full max-w-4xl px-6">
         {posts.map((post, index) => (
-          <div key={index} className="bg-base-200 shadow-xl rounded-lg p-6 mb-10">
+          <div key={index} className=" shadow-xl rounded-lg p-6 mb-10">
             <h1 className="text-3xl font-bold text-[#17A07A]">{post.blogTitle}</h1>
             <p className="text-gray-400 text-sm mt-1">
               {post.blogAuthor} • {new Date(post.createDate).toLocaleDateString()}
@@ -144,7 +144,7 @@ const Post = () => {
                 className="w-full h-auto rounded-lg mt-4"
               />
             )}
-            <div className="prose prose-invert mt-4 text-white">
+            <div className="prose prose-invert mt-4 ">
               {post.blogContent ? documentToReactComponents(post.blogContent, renderOptions) : <p>No content available.</p>}
             </div>
           </div>

@@ -1,4 +1,10 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
-
-export default nextConfig;
+const nextConfig = {
+    reactStrictMode: true,
+    images: {
+      domains: ['images.ctfassets.net'],
+      formats: ['image/avif', 'image/webp'],
+    },
+  };
+  
+  export default nextConfig;

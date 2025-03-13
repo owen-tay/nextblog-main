@@ -5,6 +5,7 @@ import { createClient } from "contentful";
 import { documentToReactComponents } from "@contentful/rich-text-react-renderer";
 import { BLOCKS, INLINES } from "@contentful/rich-text-types";
 import Link from "next/link";
+import Image from "next/image"; // Import Image from Next.js
 
 const SPACE_ID = process.env.NEXT_PUBLIC_CONTENTFUL_SPACE_ID;
 const ACCESS_TOKEN = process.env.NEXT_PUBLIC_CONTENTFUL_ACCESS_TOKEN;
@@ -18,13 +19,25 @@ const renderOptions = {
   renderNode: {
     [BLOCKS.EMBEDDED_ASSET]: (node) => {
       const { file } = node.data.target.fields;
-      return file?.url ? (
-        <img 
-          src={file.url} 
-          alt={file.title} 
-          className="w-1/2 h-auto mx-auto rounded-lg mt-4" 
-        />
-      ) : null;
+      if (!file?.url) return null;
+      
+      // Fix protocol-relative URLs
+      const imageUrl = file.url.startsWith('//') 
+        ? `https:${file.url}` 
+        : file.url;
+        
+      return (
+        <div className="w-1/2 h-auto mx-auto mt-4 relative">
+          <Image 
+            src={imageUrl} 
+            alt={file.title || "Embedded image"} 
+            width={500}
+            height={300}
+            className="rounded-lg"
+            style={{ width: '100%', height: 'auto' }}
+          />
+        </div>
+      );
     },
     [INLINES.HYPERLINK]: (node) => {
       return (
@@ -155,11 +168,18 @@ export default function BlogPost() {
           </p>
           
           {post.blogImage?.fields?.file?.url && (
-            <img
-              src={post.blogImage.fields.file.url}
-              alt={post.blogTitle}
-              className="w-full h-auto rounded-lg mt-4"
-            />
+            <div className="relative w-full h-96 mt-4">
+              <Image
+                src={post.blogImage.fields.file.url.startsWith('//') 
+                  ? `https:${post.blogImage.fields.file.url}` 
+                  : post.blogImage.fields.file.url}
+                alt={post.blogTitle || "Blog post image"}
+                fill
+                className="rounded-lg object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                priority
+              />
+            </div>
           )}
           
           <div className="prose prose-invert mt-6">

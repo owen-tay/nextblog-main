@@ -3,7 +3,7 @@ import { createClient } from "contentful";
 import { documentToReactComponents } from "@contentful/rich-text-react-renderer";
 import { BLOCKS, INLINES } from "@contentful/rich-text-types";
 import { useEffect, useState, useRef } from "react";
-
+import Link from "next/link"; // Import Link from Next.js
 
 const SPACE_ID = process.env.NEXT_PUBLIC_CONTENTFUL_SPACE_ID;
 const ACCESS_TOKEN = process.env.NEXT_PUBLIC_CONTENTFUL_ACCESS_TOKEN;
@@ -22,7 +22,7 @@ const renderOptions = {
         <img 
           src={file.url} 
           alt={file.title} 
-          className="w-1/2 h-auto mx-auto rounded-lg mt-4" // Changed to 50% width and centered
+          className="w-1/2 h-auto mx-auto rounded-lg mt-4" 
         />
       ) : null;
     },
@@ -36,7 +36,7 @@ const renderOptions = {
     [BLOCKS.EMBEDDED_ENTRY]: (node) => {
       if (node.data.target.fields.videoUrl) {
         return (
-          <div className="mt-4 w-1/2 mx-auto"> {/* Half the size and centered */}
+          <div className="mt-4 w-1/2 mx-auto">
             <iframe
               width="100%"
               height="315"
@@ -50,7 +50,7 @@ const renderOptions = {
       }
       return null;
     },
-    // Add these for heading support
+    // Heading support
     [BLOCKS.HEADING_1]: (node, children) => <h1 className="text-3xl font-bold mt-6 mb-4 text-bloggreen">{children}</h1>,
     [BLOCKS.HEADING_2]: (node, children) => <h2 className="text-2xl font-bold mt-6 mb-3 text-bloggreen">{children}</h2>,
     [BLOCKS.HEADING_3]: (node, children) => <h3 className="text-xl font-bold mt-5 mb-2 text-bloggreen">{children}</h3>,
@@ -58,14 +58,23 @@ const renderOptions = {
     [BLOCKS.HEADING_5]: (node, children) => <h5 className="text-base font-bold mt-4 mb-2 text-bloggreen">{children}</h5>,
     [BLOCKS.HEADING_6]: (node, children) => <h6 className="text-sm font-bold mt-4 mb-2 text-bloggreen">{children}</h6>,
     
-    // Add these for list support
+    // List support
     [BLOCKS.UL_LIST]: (node, children) => <ul className="list-disc pl-6 mt-3 mb-3">{children}</ul>,
     [BLOCKS.OL_LIST]: (node, children) => <ol className="list-decimal pl-6 mt-3 mb-3">{children}</ol>,
     [BLOCKS.LIST_ITEM]: (node, children) => <li className="mb-1">{children}</li>,
   },
 };
 
-const Post = () => {
+// Helper function to create a slug from the title
+const createSlug = (title) => {
+  return title
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '') // Remove special characters
+    .replace(/\s+/g, '-')     // Replace spaces with hyphens
+    .replace(/-+/g, '-');     // Remove consecutive hyphens
+};
+
+const Posts = () => {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [allPostsLoaded, setAllPostsLoaded] = useState(false);
@@ -84,6 +93,7 @@ const Post = () => {
           skip: page * perPage,
           limit: perPage,
           order: "-fields.createDate",
+          include: 10, // Include linked assets and entries
         });
 
         if (res.items.length < perPage) {
@@ -91,7 +101,12 @@ const Post = () => {
         }
 
         setPosts((prevPosts) => {
-          const newPosts = res.items.map((item) => item.fields);
+          const newPosts = res.items.map((item) => ({
+            ...item.fields,
+            id: item.sys.id, // Store the Contentful entry ID for use in permalinks
+            slug: createSlug(item.fields.blogTitle)
+          }));
+          
           const uniquePosts = Array.from(
             new Map([...prevPosts, ...newPosts].map((post) => [post.blogTitle, post])).values()
           );
@@ -132,20 +147,35 @@ const Post = () => {
     <div className="w-full flex justify-center pt-10 bg-base-100">
       <div className="w-full max-w-4xl px-6">
         {posts.map((post, index) => (
-          <div key={index} className=" shadow-xl rounded-lg p-6 mb-10">
-            <h1 className="text-3xl font-bold text-[#17A07A]">{post.blogTitle}</h1>
+          <div key={index} className="shadow-xl rounded-lg p-6 mb-10">
+            <Link href={`/blog/${post.slug}`} className="cursor-pointer">
+              <h1 className="text-3xl font-bold text-[#17A07A] hover:underline">{post.blogTitle}</h1>
+            </Link>
             <p className="text-gray-400 text-sm mt-1">
               {post.blogAuthor} • {new Date(post.createDate).toLocaleDateString()}
             </p>
             {post.blogImage?.fields?.file?.url && (
-              <img
-                src={post.blogImage.fields.file.url}
-                alt={post.blogTitle}
-                className="w-full h-auto rounded-lg mt-4"
-              />
+              <Link href={`/blog/${post.slug}`}>
+                <img
+                  src={post.blogImage.fields.file.url}
+                  alt={post.blogTitle}
+                  className="w-full h-auto rounded-lg mt-4 cursor-pointer"
+                />
+              </Link>
             )}
-            <div className="prose prose-invert mt-4 ">
-              {post.blogContent ? documentToReactComponents(post.blogContent, renderOptions) : <p>No content available.</p>}
+            <div className="prose prose-invert mt-4">
+              {post.blogContent ? (
+                <>
+                  <div className="line-clamp-4"> {/* Show a preview of the content */}
+                    {documentToReactComponents(post.blogContent, renderOptions)}
+                  </div>
+                  <Link href={`/blog/${post.slug}`} className="text-bloggreen hover:underline mt-4 text-xl inline-block">
+                    Read more
+                  </Link>
+                </>
+              ) : (
+                <p>No content available.</p>
+              )}
             </div>
           </div>
         ))}
@@ -160,4 +190,4 @@ const Post = () => {
   );
 };
 
-export default Post;
+export default Posts;

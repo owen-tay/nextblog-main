@@ -4,7 +4,7 @@ import { documentToReactComponents } from "@contentful/rich-text-react-renderer"
 import { BLOCKS, INLINES } from "@contentful/rich-text-types";
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image"; // Import Image from Next.js
+import Image from "next/image";
 
 const SPACE_ID = process.env.NEXT_PUBLIC_CONTENTFUL_SPACE_ID;
 const ACCESS_TOKEN = process.env.NEXT_PUBLIC_CONTENTFUL_ACCESS_TOKEN;
@@ -133,7 +133,7 @@ const Posts = () => {
     };
 
     fetchPosts();
-  }, [page]);
+  }, [page, isLoading, allPostsLoaded]); // Added missing dependencies
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -145,16 +145,20 @@ const Posts = () => {
       { threshold: 1.0 }
     );
 
-    if (loader.current) {
-      observer.observe(loader.current);
+    // Store a reference to the current loader element
+    const currentLoader = loader.current;
+    
+    if (currentLoader) {
+      observer.observe(currentLoader);
     }
 
     return () => {
-      if (loader.current) {
-        observer.unobserve(loader.current);
+      // Use the saved reference in the cleanup function
+      if (currentLoader) {
+        observer.unobserve(currentLoader);
       }
     };
-  }, [isLoading, allPostsLoaded]);
+  }, [isLoading, allPostsLoaded]); // Included dependencies
 
   return (
     <div className="w-full flex justify-center pt-10 bg-base-100">

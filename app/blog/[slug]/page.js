@@ -5,7 +5,7 @@ import { createClient } from "contentful";
 import { documentToReactComponents } from "@contentful/rich-text-react-renderer";
 import { BLOCKS, INLINES } from "@contentful/rich-text-types";
 import Link from "next/link";
-import Image from "next/image"; // Import Image from Next.js
+import Image from "next/image";
 
 const SPACE_ID = process.env.NEXT_PUBLIC_CONTENTFUL_SPACE_ID;
 const ACCESS_TOKEN = process.env.NEXT_PUBLIC_CONTENTFUL_ACCESS_TOKEN;
@@ -144,7 +144,7 @@ export default function BlogPost() {
         <div className="w-full max-w-4xl px-6">
           <div className="shadow-xl rounded-lg p-6 mb-10">
             <h1 className="text-3xl font-bold text-[#17A07A]">Post Not Found</h1>
-            <p className="mt-4">Sorry, we couldn't find the post you're looking for.</p>
+            <p className="mt-4">Sorry, we couldn&apos;t find the post you&apos;re looking for.</p>
             <Link href="/" className="text-bloggreen hover:underline mt-4 inline-block">
               Return to Home
             </Link>
